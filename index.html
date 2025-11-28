@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game - Multi Theme Edition</title>
+    <style>
+        :root {
+            --theme-color: #8ccd83;
+            --theme-glow: #90EE90;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px var(--theme-glow);
+            color: var(--theme-color);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            flex-wrap: wrap;
+        }
+
+        .score-board span {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .secret-indicator {
+            display: none;
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3) !important;
+            animation: rainbow-shift 2s linear infinite;
+            background-size: 200% 100% !important;
+        }
+
+        .secret-indicator.show {
+            display: inline-block;
+        }
+
+        @keyframes rainbow-shift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        #gameCanvas {
+            border: 4px solid var(--theme-color);
+            border-radius: 10px;
+            box-shadow: 0 0 30px var(--theme-glow);
+            background: #0a0a15;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        #gameCanvas.rainbow-mode {
+            border: 4px solid;
+            border-image: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3) 1;
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.4), 0 0 60px rgba(0, 255, 255, 0.3);
+            animation: pulse-glow 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.4), 0 0 60px rgba(0, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 60px rgba(255, 0, 255, 0.6), 0 0 80px rgba(0, 255, 255, 0.5); }
+        }
+
+        /* Rainbow intensity levels */
+        #gameCanvas.rainbow-intensity-2 {
+            animation: pulse-glow-2 0.8s ease-in-out infinite;
+        }
+        #gameCanvas.rainbow-intensity-3 {
+            animation: pulse-glow-3 0.6s ease-in-out infinite;
+        }
+        #gameCanvas.rainbow-intensity-4 {
+            animation: pulse-glow-4 0.4s ease-in-out infinite;
+        }
+        #gameCanvas.rainbow-intensity-5 {
+            animation: pulse-glow-5 0.3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow-2 {
+            0%, 100% { box-shadow: 0 0 50px rgba(255, 0, 255, 0.5), 0 0 70px rgba(0, 255, 255, 0.4), 0 0 90px rgba(255, 255, 0, 0.3); }
+            50% { box-shadow: 0 0 70px rgba(255, 0, 255, 0.7), 0 0 90px rgba(0, 255, 255, 0.6), 0 0 110px rgba(255, 255, 0, 0.5); }
+        }
+
+        @keyframes pulse-glow-3 {
+            0%, 100% { box-shadow: 0 0 60px rgba(255, 0, 255, 0.6), 0 0 80px rgba(0, 255, 255, 0.5), 0 0 100px rgba(255, 255, 0, 0.4), 0 0 120px rgba(0, 255, 0, 0.3); }
+            50% { box-shadow: 0 0 80px rgba(255, 0, 255, 0.8), 0 0 100px rgba(0, 255, 255, 0.7), 0 0 120px rgba(255, 255, 0, 0.6), 0 0 140px rgba(0, 255, 0, 0.5); }
+        }
+
+        @keyframes pulse-glow-4 {
+            0%, 100% { box-shadow: 0 0 70px rgba(255, 0, 255, 0.7), 0 0 90px rgba(0, 255, 255, 0.6), 0 0 110px rgba(255, 255, 0, 0.5), 0 0 130px rgba(0, 255, 0, 0.4), 0 0 150px rgba(255, 100, 0, 0.3); }
+            33% { box-shadow: 0 0 90px rgba(0, 255, 255, 0.8), 0 0 110px rgba(255, 255, 0, 0.7), 0 0 130px rgba(0, 255, 0, 0.6), 0 0 150px rgba(255, 100, 0, 0.5), 0 0 170px rgba(255, 0, 255, 0.4); }
+            66% { box-shadow: 0 0 90px rgba(255, 255, 0, 0.8), 0 0 110px rgba(0, 255, 0, 0.7), 0 0 130px rgba(255, 100, 0, 0.6), 0 0 150px rgba(255, 0, 255, 0.5), 0 0 170px rgba(0, 255, 255, 0.4); }
+        }
+
+        @keyframes pulse-glow-5 {
+            0% { box-shadow: 0 0 80px rgba(255, 0, 0, 0.8), 0 0 100px rgba(255, 127, 0, 0.7), 0 0 120px rgba(255, 255, 0, 0.6), 0 0 140px rgba(0, 255, 0, 0.5), 0 0 160px rgba(0, 0, 255, 0.4), 0 0 180px rgba(148, 0, 211, 0.3); }
+            25% { box-shadow: 0 0 100px rgba(255, 127, 0, 0.9), 0 0 120px rgba(255, 255, 0, 0.8), 0 0 140px rgba(0, 255, 0, 0.7), 0 0 160px rgba(0, 0, 255, 0.6), 0 0 180px rgba(148, 0, 211, 0.5), 0 0 200px rgba(255, 0, 0, 0.4); }
+            50% { box-shadow: 0 0 100px rgba(255, 255, 0, 0.9), 0 0 120px rgba(0, 255, 0, 0.8), 0 0 140px rgba(0, 0, 255, 0.7), 0 0 160px rgba(148, 0, 211, 0.6), 0 0 180px rgba(255, 0, 0, 0.5), 0 0 200px rgba(255, 127, 0, 0.4); }
+            75% { box-shadow: 0 0 100px rgba(0, 255, 0, 0.9), 0 0 120px rgba(0, 0, 255, 0.8), 0 0 140px rgba(148, 0, 211, 0.7), 0 0 160px rgba(255, 0, 0, 0.6), 0 0 180px rgba(255, 127, 0, 0.5), 0 0 200px rgba(255, 255, 0, 0.4); }
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: var(--theme-color);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--theme-glow);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid var(--theme-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-difficulty {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .btn-difficulty.active {
+            background: var(--theme-color);
+            color: #1a1a2e;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid var(--theme-color);
+            max-width: 550px;
+            width: 90%;
+            margin: auto;
+        }
+
+        .modal-content h2 {
+            color: var(--theme-color);
+            margin-bottom: 20px;
+        }
+
+        .modal-content h3 {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin: 20px 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .food-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .food-option {
+            padding: 15px 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .food-option:hover {
+            border-color: var(--theme-color);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .food-option.selected {
+            border-color: var(--theme-color);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .food-option .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .food-option .label {
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        .food-option.starwars {
+            border-color: rgba(255, 232, 31, 0.3);
+        }
+        .food-option.starwars:hover, .food-option.starwars.selected {
+            border-color: #FFE81F;
+            background: rgba(255, 232, 31, 0.2);
+        }
+
+        .food-option.minecraft {
+            border-color: rgba(139, 90, 43, 0.3);
+        }
+        .food-option.minecraft:hover, .food-option.minecraft.selected {
+            border-color: #5D8C2E;
+            background: rgba(93, 140, 46, 0.2);
+        }
+
+        .food-option.snake-color .icon {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .snake-colors {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        /* Game Over Overlay */
+        .overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            border-radius: 10px;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #ff4757;
+            margin-bottom: 10px;
+        }
+
+        .overlay p {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .overlay .stats {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .difficulty-section {
+            margin-bottom: 15px;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 21, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            border-radius: 10px;
+            gap: 20px;
+        }
+
+        .start-screen h2 {
+            color: var(--theme-color);
+            font-size: 2rem;
+        }
+
+        .start-screen p {
+            color: #888;
+            max-width: 350px;
+            line-height: 1.6;
+        }
+
+        .theme-preview {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .theme-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Secret unlock animation */
+        .secret-unlock {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.3rem;
+            color: gold;
+            text-shadow: 0 0 20px gold, 0 0 40px orange;
+            animation: secret-pop 2s ease-out forwards;
+            pointer-events: none;
+            z-index: 50;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        @keyframes secret-pop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -70%) scale(1); }
+        }
+
+        .probability-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .theme-info {
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐍 Snake Game</h1>
+
+        <div class="score-board">
+            <span>Score: <strong id="score">0</strong></span>
+            <span>High Score: <strong id="highScore">0</strong></span>
+            <span id="itemCountLabel">Items: <strong id="itemCount">0</strong></span>
+            <span class="secret-indicator" id="secretIndicator">✨ SECRET UNLOCKED <span id="secretCount"></span>✨</span>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+            <div class="start-screen" id="startScreen">
+                <h2>Multi-Theme Snake!</h2>
+                <div class="theme-preview">
+                    <span class="theme-dot" style="background: #8ccd83;"></span>
+                    <span class="theme-dot" style="background: #f44336;"></span>
+                    <span class="theme-dot" style="background: #FFE81F;"></span>
+                    <span class="theme-dot" style="background: #00bcd4;"></span>
+                    <span class="theme-dot" style="background: #5D8C2E;"></span>
+                    <span class="theme-dot" style="background: #55FFFF;"></span>
+                </div>
+                <p>Collect items from Labubu, Star Wars, or Minecraft! Find rare items for 10x points and rainbow mode!</p>
+                <button class="btn-primary" onclick="startGame()">Start Game</button>
+            </div>
+
+            <div class="overlay" id="gameOverlay">
+                <h2>Game Over!</h2>
+                <p>Your score: <span id="finalScore">0</span></p>
+                <div class="stats">
+                    <div>Items collected: <span id="finalItems">0</span></div>
+                    <div>Rare items found: <span id="finalRare">0</span></div>
+                </div>
+                <button class="btn-primary" onclick="startGame()">Play Again</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="difficulty-section">
+                <button class="btn-secondary btn-difficulty" onclick="setDifficulty('superBaby')" id="btn-superBaby">Super Baby</button>
+                <button class="btn-secondary btn-difficulty" onclick="setDifficulty('baby')" id="btn-baby">Baby</button>
+                <button class="btn-secondary btn-difficulty" onclick="setDifficulty('superEasy')" id="btn-superEasy">Super Easy</button>
+                <button class="btn-secondary btn-difficulty active" onclick="setDifficulty('easy')" id="btn-easy">Easy</button>
+                <button class="btn-secondary btn-difficulty" onclick="setDifficulty('expert')" id="btn-expert">Expert</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-secondary" onclick="openSettings()">⚙️ Settings</button>
+            <button class="btn-secondary" onclick="togglePause()" id="pauseBtn">⏸️ Pause</button>
+        </div>
+
+        <p class="instructions">Use Arrow Keys to move • Space to pause • Try Baby mode for beginners!</p>
+        <p class="probability-info">Rare items: 1/36 (2.78%) • Super Baby: 1/20 (5%) • 10x score bonus!</p>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h2>⚙️ Settings</h2>
+            <p>Choose your food theme:</p>
+
+            <h3>Pop Mart</h3>
+            <div class="food-options">
+                <div class="food-option selected" data-food="labubu" onclick="selectFood('labubu')">
+                    <span class="icon">👾</span>
+                    <span class="label">Labubu Monsters</span>
+                </div>
+            </div>
+
+            <h3>Star Wars</h3>
+            <div class="food-options">
+                <div class="food-option starwars" data-food="starwars" onclick="selectFood('starwars')">
+                    <span class="icon">⚔️</span>
+                    <span class="label">Lightsabers</span>
+                </div>
+            </div>
+
+            <h3>Minecraft</h3>
+            <div class="food-options">
+                <div class="food-option minecraft" data-food="minecraft" onclick="selectFood('minecraft')">
+                    <span class="icon">💎</span>
+                    <span class="label">Minecraft Items</span>
+                </div>
+            </div>
+
+            <h3>Classic</h3>
+            <div class="food-options">
+                <div class="food-option" data-food="apple" onclick="selectFood('apple')">
+                    <span class="icon">🍎</span>
+                    <span class="label">Apple</span>
+                </div>
+                <div class="food-option" data-food="pizza" onclick="selectFood('pizza')">
+                    <span class="icon">🍕</span>
+                    <span class="label">Pizza</span>
+                </div>
+                <div class="food-option" data-food="star" onclick="selectFood('star')">
+                    <span class="icon">⭐</span>
+                    <span class="label">Star</span>
+                </div>
+            </div>
+
+            <h3>Snake Color</h3>
+            <div class="food-options snake-colors">
+                <div class="food-option snake-color selected" data-snake="green" onclick="selectSnakeColor('green')">
+                    <span class="icon" style="color: #8ccd83;">●</span>
+                    <span class="label">Green</span>
+                </div>
+                <div class="food-option snake-color" data-snake="blue" onclick="selectSnakeColor('blue')">
+                    <span class="icon" style="color: #00dcff;">●</span>
+                    <span class="label">Blue</span>
+                </div>
+                <div class="food-option snake-color" data-snake="red" onclick="selectSnakeColor('red')">
+                    <span class="icon" style="color: #fb5656;">●</span>
+                    <span class="label">Red</span>
+                </div>
+                <div class="food-option snake-color" data-snake="purple" onclick="selectSnakeColor('purple')">
+                    <span class="icon" style="color: #a783b8;">●</span>
+                    <span class="label">Purple</span>
+                </div>
+                <div class="food-option snake-color" data-snake="orange" onclick="selectSnakeColor('orange')">
+                    <span class="icon" style="color: #ee8550;">●</span>
+                    <span class="label">Orange</span>
+                </div>
+                <div class="food-option snake-color" data-snake="pink" onclick="selectSnakeColor('pink')">
+                    <span class="icon" style="color: #d88ab5;">●</span>
+                    <span class="label">Pink</span>
+                </div>
+                <div class="food-option snake-color" data-snake="yellow" onclick="selectSnakeColor('yellow')">
+                    <span class="icon" style="color: #fff987;">●</span>
+                    <span class="label">Yellow</span>
+                </div>
+                <div class="food-option snake-color" data-snake="navy" onclick="selectSnakeColor('navy')">
+                    <span class="icon" style="color: #7187ac;">●</span>
+                    <span class="label">Navy</span>
+                </div>
+                <div class="food-option snake-color" data-snake="white" onclick="selectSnakeColor('white')">
+                    <span class="icon" style="color: #ffffff;">●</span>
+                    <span class="label">White</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="closeSettings()">Save & Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Configuration
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 20;
+        const tileCount = {
+            x: canvas.width / gridSize,
+            y: canvas.height / gridSize
+        };
+
+        // Game State
+        let snake = [];
+        let food = { x: 0, y: 0, type: 'green' };
+        let direction = { x: 1, y: 0 };
+        let nextDirection = { x: 1, y: 0 };
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameLoop = null;
+        let isPaused = false;
+        let isGameOver = false;
+        let gameStarted = false;
+        let itemCount = 0;
+        let rareItemCount = 0;
+        let hasSecretUnlocked = false;
+        let rainbowHue = 0;
+
+        // Settings
+        let difficulty = 'easy';
+        let selectedFood = 'labubu';
+        let selectedSnakeColor = 'green';
+
+        // Snake color schemes
+        const snakeColors = {
+            green: { head: '#8ccd83', body: 'rgba(140, 205, 131, ', eye: '#1a1a2e', glow: '#90EE90' },
+            blue: { head: '#00dcff', body: 'rgba(0, 220, 255, ', eye: '#1a1a2e', glow: '#00dcff' },
+            red: { head: '#fb5656', body: 'rgba(251, 86, 86, ', eye: '#1a1a2e', glow: '#fb5656' },
+            purple: { head: '#a783b8', body: 'rgba(167, 131, 184, ', eye: '#1a1a2e', glow: '#c9a0dc' },
+            orange: { head: '#ee8550', body: 'rgba(238, 133, 80, ', eye: '#1a1a2e', glow: '#ee8550' },
+            pink: { head: '#d88ab5', body: 'rgba(216, 138, 181, ', eye: '#1a1a2e', glow: '#d88ab5' },
+            yellow: { head: '#fff987', body: 'rgba(255, 249, 135, ', eye: '#1a1a2e', glow: '#fff987' },
+            navy: { head: '#7187ac', body: 'rgba(113, 135, 172, ', eye: '#1a1a2e', glow: '#7187ac' },
+            white: { head: '#ffffff', body: 'rgba(220, 220, 220, ', eye: '#333', glow: '#ffffff' }
+        };
+
+        // Helper function to convert hex to rgba
+        function hexToRgba(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        const speeds = {
+            superBaby: 420,
+            baby: 300,
+            superEasy: 200,
+            easy: 120,
+            expert: 60
+        };
+
+        const foodIcons = {
+            apple: '🍎',
+            pizza: '🍕',
+            star: '⭐'
+        };
+
+        // ==================== LABUBU THEME ====================
+        const labubuColors = {
+            green: { body: '#4CAF50', dark: '#2E7D32', light: '#81C784', name: 'Green' },
+            red: { body: '#f44336', dark: '#c62828', light: '#ef5350', name: 'Red' },
+            pink: { body: '#E91E63', dark: '#AD1457', light: '#F48FB1', name: 'Pink' },
+            yellow: { body: '#FFEB3B', dark: '#F9A825', light: '#FFF59D', name: 'Yellow' },
+            purple: { body: '#9C27B0', dark: '#6A1B9A', light: '#CE93D8', name: 'Purple' },
+            blue: { body: '#2196F3', dark: '#1565C0', light: '#64B5F6', name: 'Blue' },
+            black: { body: '#1a1a1a', dark: '#000000', light: '#424242', name: 'BLACK SECRET', isSecret: true }
+        };
+
+        const labubuProbabilities = [
+            { type: 'green', weight: 35/36/6 },
+            { type: 'red', weight: 35/36/6 },
+            { type: 'pink', weight: 35/36/6 },
+            { type: 'yellow', weight: 35/36/6 },
+            { type: 'purple', weight: 35/36/6 },
+            { type: 'blue', weight: 35/36/6 },
+            { type: 'black', weight: 1/36 }
+        ];
+
+        // Super Baby mode: 1/20 for secret, 19/20/6 for others
+        const labubuProbabilitiesSuperBaby = [
+            { type: 'green', weight: 19/20/6 },
+            { type: 'red', weight: 19/20/6 },
+            { type: 'pink', weight: 19/20/6 },
+            { type: 'yellow', weight: 19/20/6 },
+            { type: 'purple', weight: 19/20/6 },
+            { type: 'blue', weight: 19/20/6 },
+            { type: 'black', weight: 1/20 }
+        ];
+
+        // ==================== STAR WARS THEME ====================
+        const starwarsItems = {
+            blue: { color: '#00bfff', glow: '#00bfff', name: 'Blue Lightsaber' },
+            green: { color: '#00ff00', glow: '#00ff00', name: 'Green Lightsaber' },
+            red: { color: '#ff0000', glow: '#ff0000', name: 'Red Lightsaber' },
+            purple: { color: '#9932cc', glow: '#9932cc', name: 'Purple Lightsaber' },
+            yellow: { color: '#ffd700', glow: '#ffd700', name: 'Yellow Lightsaber' },
+            white: { color: '#ffffff', glow: '#ffffff', name: 'White Lightsaber' },
+            darksaber: { color: '#000000', glow: '#ffffff', name: 'DARKSABER', isSecret: true }
+        };
+
+        const starwarsProbabilities = [
+            { type: 'blue', weight: 35/36/6 },
+            { type: 'green', weight: 35/36/6 },
+            { type: 'red', weight: 35/36/6 },
+            { type: 'purple', weight: 35/36/6 },
+            { type: 'yellow', weight: 35/36/6 },
+            { type: 'white', weight: 35/36/6 },
+            { type: 'darksaber', weight: 1/36 }
+        ];
+
+        const starwarsProbabilitiesSuperBaby = [
+            { type: 'blue', weight: 19/20/6 },
+            { type: 'green', weight: 19/20/6 },
+            { type: 'red', weight: 19/20/6 },
+            { type: 'purple', weight: 19/20/6 },
+            { type: 'yellow', weight: 19/20/6 },
+            { type: 'white', weight: 19/20/6 },
+            { type: 'darksaber', weight: 1/20 }
+        ];
+
+        // ==================== MINECRAFT THEME ====================
+        const minecraftItems = {
+            diamond: { color: '#55FFFF', dark: '#2CB5B5', name: 'Diamond' },
+            emerald: { color: '#00D93D', dark: '#009E2D', name: 'Emerald' },
+            gold: { color: '#FCDB3D', dark: '#C4A52D', name: 'Gold Ingot' },
+            iron: { color: '#D8D8D8', dark: '#8B8B8B', name: 'Iron Ingot' },
+            redstone: { color: '#FF0000', dark: '#AA0000', name: 'Redstone' },
+            lapis: { color: '#345EC3', dark: '#1E3A8A', name: 'Lapis Lazuli' },
+            netherstar: { color: '#FFFFC8', dark: '#FFF080', name: 'NETHER STAR', isSecret: true }
+        };
+
+        const minecraftProbabilities = [
+            { type: 'diamond', weight: 35/36/6 },
+            { type: 'emerald', weight: 35/36/6 },
+            { type: 'gold', weight: 35/36/6 },
+            { type: 'iron', weight: 35/36/6 },
+            { type: 'redstone', weight: 35/36/6 },
+            { type: 'lapis', weight: 35/36/6 },
+            { type: 'netherstar', weight: 1/36 }
+        ];
+
+        const minecraftProbabilitiesSuperBaby = [
+            { type: 'diamond', weight: 19/20/6 },
+            { type: 'emerald', weight: 19/20/6 },
+            { type: 'gold', weight: 19/20/6 },
+            { type: 'iron', weight: 19/20/6 },
+            { type: 'redstone', weight: 19/20/6 },
+            { type: 'lapis', weight: 19/20/6 },
+            { type: 'netherstar', weight: 1/20 }
+        ];
+
+        // Initialize
+        document.getElementById('highScore').textContent = highScore;
+
+        function getRandomItem() {
+            let probabilities;
+            const isSuperBaby = difficulty === 'superBaby';
+
+            if (selectedFood === 'labubu') {
+                probabilities = isSuperBaby ? labubuProbabilitiesSuperBaby : labubuProbabilities;
+            } else if (selectedFood === 'starwars') {
+                probabilities = isSuperBaby ? starwarsProbabilitiesSuperBaby : starwarsProbabilities;
+            } else if (selectedFood === 'minecraft') {
+                probabilities = isSuperBaby ? minecraftProbabilitiesSuperBaby : minecraftProbabilities;
+            } else {
+                return 'default';
+            }
+
+            const random = Math.random();
+            let cumulative = 0;
+
+            for (const prob of probabilities) {
+                cumulative += prob.weight;
+                if (random < cumulative) {
+                    return prob.type;
+                }
+            }
+            return probabilities[0].type;
+        }
+
+        function isSecretItem(type) {
+            if (selectedFood === 'labubu') {
+                return type === 'black';
+            } else if (selectedFood === 'starwars') {
+                return type === 'darksaber';
+            } else if (selectedFood === 'minecraft') {
+                return type === 'netherstar';
+            }
+            return false;
+        }
+
+        function getSecretMessage() {
+            if (selectedFood === 'labubu') {
+                return '🌟 SECRET BLACK LABUBU! 10x SCORE! 🌟';
+            } else if (selectedFood === 'starwars') {
+                return '⚡ LEGENDARY DARKSABER! 10x SCORE! ⚡';
+            } else if (selectedFood === 'minecraft') {
+                return '✨ NETHER STAR FOUND! 10x SCORE! ✨';
+            }
+            return '🌟 SECRET ITEM! 10x SCORE! 🌟';
+        }
+
+        function getItemLabel() {
+            if (selectedFood === 'labubu') return 'Labubus';
+            if (selectedFood === 'starwars') return 'Sabers';
+            if (selectedFood === 'minecraft') return 'Items';
+            return 'Items';
+        }
+
+        function initGame() {
+            snake = [
+                { x: 5, y: Math.floor(tileCount.y / 2) },
+                { x: 4, y: Math.floor(tileCount.y / 2) },
+                { x: 3, y: Math.floor(tileCount.y / 2) }
+            ];
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            score = 0;
+            itemCount = 0;
+            rareItemCount = 0;
+            hasSecretUnlocked = false;
+            rainbowHue = 0;
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('itemCount').textContent = itemCount;
+            document.getElementById('itemCountLabel').innerHTML = `${getItemLabel()}: <strong id="itemCount">${itemCount}</strong>`;
+            document.getElementById('secretIndicator').classList.remove('show');
+            document.getElementById('secretCount').textContent = '';
+            const canvas = document.getElementById('gameCanvas');
+            canvas.classList.remove('rainbow-mode', 'rainbow-intensity-1', 'rainbow-intensity-2', 'rainbow-intensity-3', 'rainbow-intensity-4', 'rainbow-intensity-5');
+
+            isGameOver = false;
+            isPaused = false;
+            document.getElementById('pauseBtn').textContent = '⏸️ Pause';
+            spawnFood();
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverlay').classList.remove('show');
+
+            if (gameLoop) {
+                clearInterval(gameLoop);
+            }
+
+            initGame();
+            gameStarted = true;
+            gameLoop = setInterval(gameUpdate, speeds[difficulty]);
+        }
+
+        function showSecretUnlock() {
+            const wrapper = document.querySelector('.canvas-wrapper');
+            const popup = document.createElement('div');
+            popup.className = 'secret-unlock';
+            let message = getSecretMessage();
+            if (rareItemCount > 1) {
+                message = message.replace('!', ' x' + rareItemCount + '!');
+            }
+            popup.innerHTML = message;
+            wrapper.appendChild(popup);
+
+            setTimeout(() => popup.remove(), 2000);
+        }
+
+        function updateRainbowIntensity() {
+            const intensity = Math.min(rareItemCount, 5); // Cap at 5 for max intensity
+            const canvas = document.getElementById('gameCanvas');
+
+            // Remove old intensity classes
+            canvas.classList.remove('rainbow-intensity-1', 'rainbow-intensity-2', 'rainbow-intensity-3', 'rainbow-intensity-4', 'rainbow-intensity-5');
+
+            // Add new intensity class
+            canvas.classList.add('rainbow-intensity-' + intensity);
+        }
+
+        function gameUpdate() {
+            if (isPaused || isGameOver) return;
+
+            if (hasSecretUnlocked) {
+                // Rainbow speed increases with more secrets
+                const rainbowSpeed = 5 + (rareItemCount - 1) * 3;
+                rainbowHue = (rainbowHue + rainbowSpeed) % 360;
+            }
+
+            direction = { ...nextDirection };
+
+            const head = {
+                x: snake[0].x + direction.x,
+                y: snake[0].y + direction.y
+            };
+
+            if (head.x < 0 || head.x >= tileCount.x || head.y < 0 || head.y >= tileCount.y) {
+                gameOver();
+                return;
+            }
+
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                let points = 10;
+
+                if (['labubu', 'starwars', 'minecraft'].includes(selectedFood)) {
+                    itemCount++;
+                    document.getElementById('itemCount').textContent = itemCount;
+
+                    if (isSecretItem(food.type)) {
+                        points = 100;
+                        rareItemCount++;
+
+                        hasSecretUnlocked = true;
+                        document.getElementById('secretIndicator').classList.add('show');
+                        document.getElementById('gameCanvas').classList.add('rainbow-mode');
+
+                        // Update secret count display
+                        if (rareItemCount > 1) {
+                            document.getElementById('secretCount').textContent = 'x' + rareItemCount;
+                        }
+
+                        // Increase rainbow intensity
+                        updateRainbowIntensity();
+                        showSecretUnlock();
+                    }
+                }
+
+                score += points;
+                document.getElementById('score').textContent = score;
+
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('snakeHighScore', highScore);
+                    document.getElementById('highScore').textContent = highScore;
+                }
+
+                spawnFood();
+            } else {
+                snake.pop();
+            }
+
+            draw();
+        }
+
+        // ==================== DRAWING FUNCTIONS ====================
+
+        function drawLabubu(x, y, colorKey) {
+            const color = labubuColors[colorKey];
+            const centerX = x * gridSize + gridSize / 2;
+            const centerY = y * gridSize + gridSize / 2;
+            const size = gridSize - 4;
+
+            ctx.save();
+
+            if (colorKey === 'black') {
+                ctx.shadowColor = 'gold';
+                ctx.shadowBlur = 15;
+            }
+
+            ctx.fillStyle = color.body;
+            ctx.beginPath();
+            ctx.roundRect(x * gridSize + 2, y * gridSize + 4, size, size - 2, 4);
+            ctx.fill();
+
+            // Ears
+            ctx.beginPath();
+            ctx.moveTo(centerX - 6, y * gridSize + 5);
+            ctx.lineTo(centerX - 10, y * gridSize - 4);
+            ctx.lineTo(centerX - 2, y * gridSize + 5);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(centerX + 6, y * gridSize + 5);
+            ctx.lineTo(centerX + 10, y * gridSize - 4);
+            ctx.lineTo(centerX + 2, y * gridSize + 5);
+            ctx.fill();
+
+            // Inner ears
+            ctx.fillStyle = color.light;
+            ctx.beginPath();
+            ctx.moveTo(centerX - 6, y * gridSize + 5);
+            ctx.lineTo(centerX - 8, y * gridSize);
+            ctx.lineTo(centerX - 4, y * gridSize + 5);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(centerX + 6, y * gridSize + 5);
+            ctx.lineTo(centerX + 8, y * gridSize);
+            ctx.lineTo(centerX + 4, y * gridSize + 5);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(centerX - 4, centerY - 1, 3, 0, Math.PI * 2);
+            ctx.arc(centerX + 4, centerY - 1, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = colorKey === 'black' ? '#ff0000' : '#000';
+            ctx.beginPath();
+            ctx.arc(centerX - 4, centerY - 1, 1.5, 0, Math.PI * 2);
+            ctx.arc(centerX + 4, centerY - 1, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Teeth
+            ctx.fillStyle = colorKey === 'yellow' ? '#333' : 'white';
+            ctx.beginPath();
+            ctx.moveTo(centerX - 5, centerY + 4);
+            ctx.lineTo(centerX - 3, centerY + 7);
+            ctx.lineTo(centerX - 1, centerY + 4);
+            ctx.lineTo(centerX + 1, centerY + 7);
+            ctx.lineTo(centerX + 3, centerY + 4);
+            ctx.lineTo(centerX + 5, centerY + 7);
+            ctx.lineTo(centerX + 5, centerY + 4);
+            ctx.closePath();
+            ctx.fill();
+
+            if (colorKey === 'black') {
+                ctx.fillStyle = 'gold';
+                ctx.font = '8px Arial';
+                ctx.fillText('★', x * gridSize + 1, y * gridSize + 8);
+                ctx.fillText('★', x * gridSize + size - 4, y * gridSize + 8);
+            }
+
+            ctx.restore();
+        }
+
+        function drawLightsaber(x, y, type) {
+            const item = starwarsItems[type];
+            const centerX = x * gridSize + gridSize / 2;
+            const centerY = y * gridSize + gridSize / 2;
+
+            ctx.save();
+
+            // Glow effect
+            if (type === 'darksaber') {
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 20;
+            } else {
+                ctx.shadowColor = item.glow;
+                ctx.shadowBlur = 15;
+            }
+
+            // Handle
+            ctx.fillStyle = '#888';
+            ctx.fillRect(centerX - 2, centerY + 2, 4, 8);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(centerX - 2, centerY + 6, 4, 4);
+
+            // Blade
+            if (type === 'darksaber') {
+                // Black blade with white edge
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 3, centerY - 8, 6, 12);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(centerX - 2, centerY - 7, 4, 10);
+            } else {
+                // White core
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(centerX - 1, centerY - 8, 2, 10);
+                // Colored glow
+                ctx.fillStyle = item.color;
+                ctx.globalAlpha = 0.7;
+                ctx.fillRect(centerX - 3, centerY - 8, 6, 10);
+                ctx.globalAlpha = 1;
+            }
+
+            // Sparkle for darksaber
+            if (type === 'darksaber') {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '6px Arial';
+                ctx.fillText('✦', x * gridSize + 2, y * gridSize + 6);
+                ctx.fillText('✦', x * gridSize + gridSize - 8, y * gridSize + 6);
+            }
+
+            ctx.restore();
+        }
+
+        function drawMinecraftItem(x, y, type) {
+            const item = minecraftItems[type];
+            const px = x * gridSize;
+            const py = y * gridSize;
+            const size = gridSize;
+            const pixelSize = size / 8;
+
+            ctx.save();
+
+            if (type === 'netherstar') {
+                ctx.shadowColor = '#FFF080';
+                ctx.shadowBlur = 20;
+
+                // Draw star shape
+                const cx = px + size / 2;
+                const cy = py + size / 2;
+
+                ctx.fillStyle = item.color;
+                ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
+                    const r = i === 0 ? 0 : 8;
+                    if (i === 0) {
+                        ctx.moveTo(cx + 8 * Math.cos(-Math.PI / 2), cy + 8 * Math.sin(-Math.PI / 2));
+                    }
+                    const outerAngle = (i * 4 * Math.PI / 5) - Math.PI / 2;
+                    const innerAngle = outerAngle + 2 * Math.PI / 5;
+                    ctx.lineTo(cx + 8 * Math.cos(outerAngle), cy + 8 * Math.sin(outerAngle));
+                    ctx.lineTo(cx + 4 * Math.cos(innerAngle), cy + 4 * Math.sin(innerAngle));
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                // Inner glow
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'gold';
+                ctx.font = '6px Arial';
+                ctx.fillText('✦', px + 1, py + 6);
+                ctx.fillText('✦', px + size - 7, py + 6);
+            } else if (type === 'diamond' || type === 'emerald') {
+                // Diamond/Emerald gem shape
+                ctx.fillStyle = item.color;
+                ctx.beginPath();
+                ctx.moveTo(px + size / 2, py + 2);
+                ctx.lineTo(px + size - 3, py + size / 3);
+                ctx.lineTo(px + size - 3, py + size / 2);
+                ctx.lineTo(px + size / 2, py + size - 2);
+                ctx.lineTo(px + 3, py + size / 2);
+                ctx.lineTo(px + 3, py + size / 3);
+                ctx.closePath();
+                ctx.fill();
+
+                // Highlight
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.beginPath();
+                ctx.moveTo(px + size / 2, py + 2);
+                ctx.lineTo(px + size - 5, py + size / 3);
+                ctx.lineTo(px + size / 2, py + size / 3 + 2);
+                ctx.lineTo(px + 5, py + size / 3);
+                ctx.closePath();
+                ctx.fill();
+            } else if (type === 'gold' || type === 'iron') {
+                // Ingot shape (blocky)
+                ctx.fillStyle = item.dark;
+                ctx.fillRect(px + 2, py + 6, size - 4, size - 8);
+
+                ctx.fillStyle = item.color;
+                ctx.fillRect(px + 3, py + 4, size - 6, size - 8);
+
+                // Top highlight
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(px + 3, py + 4, size - 6, 3);
+            } else if (type === 'redstone') {
+                // Redstone dust pile
+                ctx.fillStyle = item.color;
+                for (let i = 0; i < 5; i++) {
+                    const rx = px + 4 + Math.random() * 8;
+                    const ry = py + 6 + Math.random() * 8;
+                    ctx.beginPath();
+                    ctx.arc(rx, ry, 2 + Math.random() * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Glow effect
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(px + size / 2, py + size / 2, 4, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (type === 'lapis') {
+                // Lapis lazuli
+                ctx.fillStyle = item.color;
+                ctx.beginPath();
+                ctx.moveTo(px + size / 2, py + 3);
+                ctx.lineTo(px + size - 4, py + size / 2);
+                ctx.lineTo(px + size / 2, py + size - 3);
+                ctx.lineTo(px + 4, py + size / 2);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = item.dark;
+                ctx.beginPath();
+                ctx.arc(px + size / 2 - 2, py + size / 2, 2, 0, Math.PI * 2);
+                ctx.arc(px + size / 2 + 3, py + size / 2 + 2, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#0a0a15';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid (use snake glow color with low opacity)
+            ctx.strokeStyle = hasSecretUnlocked ?
+                `hsla(${rainbowHue}, 100%, 50%, 0.1)` :
+                hexToRgba(snakeColors[selectedSnakeColor].glow, 0.1);
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= tileCount.x; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= tileCount.y; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+
+            // Draw snake
+            const snakeScheme = snakeColors[selectedSnakeColor];
+            snake.forEach((segment, index) => {
+                if (hasSecretUnlocked) {
+                    const hueSpread = 15 + rareItemCount * 8; // More color spread with more secrets
+                    const hue = (rainbowHue + index * hueSpread) % 360;
+                    const saturation = Math.min(100, 85 + rareItemCount * 5);
+                    const lightness = Math.min(65, 50 + rareItemCount * 3);
+                    ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+                    // Multi-layer glow for more shine
+                    const glowIntensity = Math.min(rareItemCount, 5);
+                    ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+                    ctx.shadowBlur = 15 + glowIntensity * 8; // Much stronger glow
+
+                    // Add sparkle effect for 2+ secrets
+                    if (rareItemCount >= 2 && index === 0) {
+                        // Draw extra glow layers for head
+                        ctx.save();
+                        ctx.globalAlpha = 0.3 + glowIntensity * 0.1;
+                        ctx.shadowBlur = 25 + glowIntensity * 10;
+                        ctx.beginPath();
+                        ctx.arc(
+                            segment.x * gridSize + gridSize / 2,
+                            segment.y * gridSize + gridSize / 2,
+                            gridSize / 2 + glowIntensity * 2,
+                            0, Math.PI * 2
+                        );
+                        ctx.fillStyle = `hsl(${(hue + 180) % 360}, 100%, 80%)`;
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                } else if (index === 0) {
+                    ctx.fillStyle = snakeScheme.head;
+                    ctx.shadowColor = snakeScheme.glow;
+                    ctx.shadowBlur = 10;
+                } else {
+                    const alpha = 1 - (index / snake.length) * 0.5;
+                    ctx.fillStyle = snakeScheme.body + alpha + ')';
+                    ctx.shadowBlur = 0;
+                }
+
+                ctx.beginPath();
+                ctx.roundRect(
+                    segment.x * gridSize + 2,
+                    segment.y * gridSize + 2,
+                    gridSize - 4,
+                    gridSize - 4,
+                    5
+                );
+                ctx.fill();
+
+                if (index === 0) {
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = hasSecretUnlocked ? '#fff' : snakeScheme.eye;
+                    const eyeSize = 4;
+                    const eyeOffset = 5;
+
+                    let eyePositions = [];
+                    if (direction.x === 1) {
+                        eyePositions = [
+                            { x: segment.x * gridSize + gridSize - eyeOffset, y: segment.y * gridSize + eyeOffset + 2 },
+                            { x: segment.x * gridSize + gridSize - eyeOffset, y: segment.y * gridSize + gridSize - eyeOffset - 2 }
+                        ];
+                    } else if (direction.x === -1) {
+                        eyePositions = [
+                            { x: segment.x * gridSize + eyeOffset, y: segment.y * gridSize + eyeOffset + 2 },
+                            { x: segment.x * gridSize + eyeOffset, y: segment.y * gridSize + gridSize - eyeOffset - 2 }
+                        ];
+                    } else if (direction.y === -1) {
+                        eyePositions = [
+                            { x: segment.x * gridSize + eyeOffset + 2, y: segment.y * gridSize + eyeOffset },
+                            { x: segment.x * gridSize + gridSize - eyeOffset - 2, y: segment.y * gridSize + eyeOffset }
+                        ];
+                    } else {
+                        eyePositions = [
+                            { x: segment.x * gridSize + eyeOffset + 2, y: segment.y * gridSize + gridSize - eyeOffset },
+                            { x: segment.x * gridSize + gridSize - eyeOffset - 2, y: segment.y * gridSize + gridSize - eyeOffset }
+                        ];
+                    }
+
+                    eyePositions.forEach(pos => {
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, eyeSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                }
+            });
+
+            // Draw sparkles on snake body when 2+ secrets found
+            if (hasSecretUnlocked && rareItemCount >= 2) {
+                ctx.save();
+                const sparkleCount = Math.min(rareItemCount * 3, 15);
+                for (let i = 0; i < sparkleCount; i++) {
+                    const segIndex = Math.floor(Math.random() * snake.length);
+                    const seg = snake[segIndex];
+                    const sparkleX = seg.x * gridSize + Math.random() * gridSize;
+                    const sparkleY = seg.y * gridSize + Math.random() * gridSize;
+                    const sparkleHue = (rainbowHue + i * 50) % 360;
+                    const sparkleSize = 2 + Math.random() * (rareItemCount);
+
+                    ctx.fillStyle = `hsl(${sparkleHue}, 100%, 90%)`;
+                    ctx.shadowColor = `hsl(${sparkleHue}, 100%, 70%)`;
+                    ctx.shadowBlur = 10;
+                    ctx.globalAlpha = 0.5 + Math.random() * 0.5;
+
+                    // Draw star sparkle
+                    ctx.beginPath();
+                    ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            ctx.shadowBlur = 0;
+
+            // Draw food based on theme
+            if (selectedFood === 'labubu') {
+                drawLabubu(food.x, food.y, food.type);
+            } else if (selectedFood === 'starwars') {
+                drawLightsaber(food.x, food.y, food.type);
+            } else if (selectedFood === 'minecraft') {
+                drawMinecraftItem(food.x, food.y, food.type);
+            } else {
+                ctx.font = `${gridSize - 4}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(
+                    foodIcons[selectedFood] || '🍎',
+                    food.x * gridSize + gridSize / 2,
+                    food.y * gridSize + gridSize / 2 + 2
+                );
+            }
+        }
+
+        function spawnFood() {
+            let newFood;
+            let minX, maxX, minY, maxY;
+
+            // In Baby/Super Baby mode, avoid edges to make it easier
+            if (difficulty === 'superBaby') {
+                minX = 4;
+                maxX = tileCount.x - 5;
+                minY = 4;
+                maxY = tileCount.y - 5;
+            } else if (difficulty === 'baby') {
+                minX = 3;
+                maxX = tileCount.x - 4;
+                minY = 3;
+                maxY = tileCount.y - 4;
+            } else {
+                minX = 0;
+                maxX = tileCount.x - 1;
+                minY = 1; // Leave room for ears at top
+                maxY = tileCount.y - 1;
+            }
+
+            do {
+                newFood = {
+                    x: Math.floor(Math.random() * (maxX - minX + 1)) + minX,
+                    y: Math.floor(Math.random() * (maxY - minY + 1)) + minY,
+                    type: getRandomItem()
+                };
+            } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+
+            food = newFood;
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(gameLoop);
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalItems').textContent = itemCount;
+            document.getElementById('finalRare').textContent = rareItemCount;
+            document.getElementById('gameOverlay').classList.add('show');
+        }
+
+        function togglePause() {
+            if (!gameStarted || isGameOver) return;
+
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').textContent = isPaused ? '▶️ Resume' : '⏸️ Pause';
+
+            if (isPaused) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = hasSecretUnlocked ?
+                    `hsl(${rainbowHue}, 100%, 50%)` : snakeColors[selectedSnakeColor].head;
+                ctx.font = '40px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+            } else {
+                draw();
+            }
+        }
+
+        function setDifficulty(level) {
+            difficulty = level;
+
+            document.querySelectorAll('.btn-difficulty').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${level}`).classList.add('active');
+
+            if (gameStarted && !isGameOver) {
+                clearInterval(gameLoop);
+                gameLoop = setInterval(gameUpdate, speeds[difficulty]);
+            }
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('show');
+            if (gameStarted && !isPaused && !isGameOver) {
+                togglePause();
+            }
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        function selectFood(foodType) {
+            selectedFood = foodType;
+
+            document.querySelectorAll('.food-option:not(.snake-color)').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`[data-food="${foodType}"]`).classList.add('selected');
+
+            // Update item count label
+            document.getElementById('itemCountLabel').innerHTML = `${getItemLabel()}: <strong id="itemCount">${itemCount}</strong>`;
+
+            if (gameStarted) {
+                spawnFood();
+                draw();
+            }
+        }
+
+        function selectSnakeColor(color) {
+            selectedSnakeColor = color;
+
+            document.querySelectorAll('.snake-color').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`[data-snake="${color}"]`).classList.add('selected');
+
+            // Update theme colors
+            const scheme = snakeColors[color];
+            document.documentElement.style.setProperty('--theme-color', scheme.head);
+            document.documentElement.style.setProperty('--theme-glow', scheme.glow);
+
+            if (gameStarted) {
+                draw();
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                    if (direction.y !== 1) {
+                        nextDirection = { x: 0, y: -1 };
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    if (direction.y !== -1) {
+                        nextDirection = { x: 0, y: 1 };
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    if (direction.x !== 1) {
+                        nextDirection = { x: -1, y: 0 };
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    if (direction.x !== -1) {
+                        nextDirection = { x: 1, y: 0 };
+                    }
+                    e.preventDefault();
+                    break;
+                case ' ':
+                    togglePause();
+                    e.preventDefault();
+                    break;
+                case 'Escape':
+                    if (document.getElementById('settingsModal').classList.contains('show')) {
+                        closeSettings();
+                    }
+                    break;
+            }
+        });
+
+        document.getElementById('settingsModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('settingsModal')) {
+                closeSettings();
+            }
+        });
+
+        // Initial draw
+        initGame();
+        draw();
+    </script>
+</body>
+</html>
