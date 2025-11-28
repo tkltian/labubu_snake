@@ -362,6 +362,25 @@
             line-height: 1.6;
         }
 
+        .credits {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.75rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .credits .dedication {
+            color: #888;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .credits .copyright {
+            color: #555;
+        }
+
         .theme-preview {
             display: flex;
             gap: 8px;
@@ -642,6 +661,10 @@
                 </div>
                 <p>Collect items from Labubu, Star Wars, or Minecraft! Find rare items for 10x points and rainbow mode!</p>
                 <button class="btn-primary" onclick="startGame()">Start Game</button>
+                <div class="credits">
+                    <div class="dedication">Made with love, inspired by the brilliant ideas of Claire Rowe and Owen Rowe. Love you! - Uncle Lei</div>
+                    <div class="copyright">© Lei Tian | tkltian@gmail.com</div>
+                </div>
             </div>
 
             <div class="overlay" id="gameOverlay">
